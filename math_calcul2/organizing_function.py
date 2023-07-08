@@ -1,98 +1,95 @@
+import math
+
 from math_calcul2.helping_function import get_parenthesis_sub_array, get_sub_array2, has_common_items, \
     turn_elements_to_None, \
     check_pattern, split_array, process_list
 
+from Errors.errors_handling import brackets_handling, signs_handling
 
-def organize_calcul_list(array, to_calculate=True, variable=False):
+
+@brackets_handling
+@signs_handling
+def organize_calcul_list(array, to_calculate=True, variable=False, recursive=False):
     from math_calcul2.calculating_function import calculate1
-    from math_calcul2.helping_function import has_sublists
+    from functions.my_functions import replace_sequence_in_array
+    from math_calcul2.helping_function import has_sublists, handle_minus
 
-    if '[' not in array:
-        new_array = []
+    new_array = []
 
-        new_array = organize_math_function(array, new_array)
-        new_array = organize_power(new_array, [])
-        new_array = organize_parenthesis(new_array, [], ('(', ')'))
-        new_array1 = []
-        if has_sublists(new_array):
-            for arr in new_array:
-                if arr.__class__ == list and not has_common_items(arr, ['ln', 'exp', 'cos', 'sin', 'tan', 'sqrt']):
-                    new_arr = organize_parenthesis(arr, [], ('(', ')'))
-                    new_arr = organize_signs_(new_arr, [])
-                    new_array1.append(new_arr)
-                else:
-                    new_array1.append(arr)
+    new_array = organize_numbers(array, new_array, recursive)
+    new_array = organize_math_function(new_array, [])
+    new_array = organize_power(new_array, [])
+    new_array = organize_parenthesis(new_array, [], variable)
+    new_array1 = []
+    if has_sublists(new_array):
+        for arr in new_array:
+            if arr.__class__ == list and not has_common_items(arr, ['ln', 'exp', 'cos', 'sin', 'tan', 'sqrt']):
 
-            new_array = new_array1
+                new_arr = organize_parenthesis(arr, [])
 
-        new_array = organize_signs_(new_array, [])
+                new_arr = organize_signs_(new_arr, [])
+                new_array1.append(new_arr)
+            else:
+                new_array1.append(arr)
 
-        if new_array[0] == '+':
-            new_array = new_array[1:]
+        new_array = new_array1
 
-        if to_calculate and not variable:
-            result = calculate1(new_array)
-            return result
-            # if the function is used to organize a sub_array then the calcul will be done later
-        elif variable:
-            new_array = calculate1(new_array, variable=True)
+    new_array = organize_signs_(new_array, [])
+
+    if new_array[0] == '+':
+        new_array = new_array[1:]
+
+    if to_calculate and not variable:
+        result = calculate1(new_array)
+        return result
+        # if the function is used to organize a sub_array then the calcul will be done later
+    elif variable:
+        new_array = calculate1(new_array, variable=True)
+        return new_array
+    else:
         return new_array
 
-    else:  # get the first array and the second array and run the function on each one of them
-        starting_index = 0
-        all_new_sub_arrays = []
-        while starting_index < len(array):
-            # loop while the starting index is less than the length and run this function over each sub_array
-            sub_array, next_starting_index = split_array(array, starting_index)
-            if sub_array is None:
-                break
-            else:
-                new_sub_array = organize_calcul_list(sub_array, False)
-                if not variable:
-                    new_sub_array = calculate1(new_sub_array)
-                else:
-                    new_sub_array = calculate1(new_sub_array, variable)
-                all_new_sub_arrays.append(new_sub_array)
 
-                try:
-                    all_new_sub_arrays.append(array[starting_index + next_starting_index + 1])
-                except IndexError:
-                    pass
-                starting_index += next_starting_index  # calculate each sub_array
-        if not variable:
-            result = calculate1(all_new_sub_arrays)
-            return result
-        else:  #
-            result = calculate1(all_new_sub_arrays, variable)
-            return result
+def organize_parenthesis(array, new_array, variable=False):
+    """
+    The algorithm is, for each opening bracket, set a variable tha will be incremented whenever it encounters an opening bracket and will be decremented whenever
+     it encounters a closing bracket, and when j is less than zero, we found the corresponded closing bracket
 
+    """
+    from math_calcul2.helping_function2 import brackets_algorithm
 
-def organize_parenthesis(array, new_array, para_type):
     signs = ('+', '-')
     signs2 = ('*', '/')
+
     skip_next = 0
-    for i in range(len(array)):
+    index_counter = -1
+    for element in array:
+        index_counter += 1
+
         if skip_next > 0:
             skip_next -= 1
             continue
-        if array[i] == para_type[0]:  # check if the element is a (
-            sub_array, index = get_parenthesis_sub_array(array, i, para_type)  # get all the elements until the )
-            if array[i - 1] in signs or array[i - 1] in signs2:
+
+        if element == '(':
+            sub_array, ln_sub_array, index = brackets_algorithm(array, index_counter,
+                                                                variable=variable)  # here we implement the algorithm
+            if sub_array[0] == '-':
+                sub_array = [0] + sub_array  # add a zero to the beginning of the list for logic purposes
+
+            if array[index_counter - 1] in signs or array[index_counter - 1] in signs2:
                 new_array += [
-                    sub_array]  # check if I have to add a plus sign or not (if the ( is the first element in the lidt)
+                    sub_array]  # check if I have to add a plus sign or not (if the ( is the first element in the list)
             else:
                 new_array += ['+'] + [sub_array]
-            array = turn_elements_to_None(array, i,
-                                          index + i)  # turn all the elements that are analyzed to None to prevent logical errors
-            skip_next += len(sub_array)  # skip the element analyzed in the for loop
+
+            skip_next += ln_sub_array + 1
+
 
         else:
-            if array[i] is not None:
-                new_array += [array[i]]
-
-            continue
-    if new_array[0] in signs:
+            new_array += [element]
+    if new_array[0] == '+':
         new_array = new_array[1:]
+
     return new_array
 
 
@@ -108,7 +105,13 @@ def organize_signs_(array, new_array):
             if array[i] in signs:
 
                 sub_array1 = [j for j in array[:i] if j is not None]
+
                 sub_array1_ln = len(sub_array1)
+
+                if sub_array1_ln == 0:
+                    sub_array1 = [0]  # this will be used to replace the empty list with a 0 in it for logical purposes
+                    sub_array1_ln = 1
+
                 sub_array2, index = get_sub_array2(array, i)
                 try:
                     sub_array2_len = len(sub_array2)
@@ -147,6 +150,7 @@ def organize_signs_(array, new_array):
 
 def organize_math_function(array, new_array):
     from math_calcul2.calculating_function import calculate_func_sub_array
+    from math_calcul2.helping_function2 import brackets_algorithm
 
     functions = ['ln', 'exp', 'cos', 'sin', 'tan', 'sqrt']
     signs = ('+', '-')
@@ -156,14 +160,14 @@ def organize_math_function(array, new_array):
             skip_next -= 1
             continue
         if array[i] in functions:
-            inside_function, index = get_parenthesis_sub_array(array, i + 1, ('(', ')'))
+            inside_function, ln_inside_function, index = brackets_algorithm(array, i + 1, to_calculate=True)
 
-            function = [array[i]] + ['('] + inside_function + [')']
+            function = [array[i]] + ['('] + [inside_function] + [')']
             ln_function = len(function)
             # let's calculate the function here if it is calculable
             if 'x' not in function:
                 function = calculate_func_sub_array(function)
-            array = turn_elements_to_None(array, i, index + 1 + i)
+            # array = turn_elements_to_None(array, i, index + 1 + i)
             try:
                 if len(new_array) != 0 or new_array[-1] in signs:
 
@@ -185,7 +189,7 @@ def organize_math_function(array, new_array):
 def organize_power(array, new_array):
     from math_calcul2.calculating_function import calculate1
     from math_calcul2.helping_function2 import transform_array, check_if_inside_parenthesis, \
-        check_element_after_condition
+        check_element_after_condition, brackets_algorithm, reverse_brackets_algorithm
     skip_next = 0
     signs = ('+', '-')
     for i in range(len(array)):
@@ -203,7 +207,7 @@ def organize_power(array, new_array):
                     new_array, skip_next = transform_array(new_array, result, signs, skip_next, 2)
                 else:
                     # handle the case where the thing raised to the power is an expression
-                    expression_raised_to_power = get_parenthesis_sub_array(array, i - 1, ('(', ')'), reverse=True)
+                    expression_raised_to_power, length, index = reverse_brackets_algorithm(array, i-1)
 
                     if 'x' not in expression_raised_to_power:
                         expression_raised_to_power = organize_calcul_list(expression_raised_to_power)
@@ -215,8 +219,7 @@ def organize_power(array, new_array):
                 # handle the case where the thing raised to the power is an expression
                 if array[i - 1] != ')':
                     # handle the case where the expression raised to the power is not a number
-                    power_expression, index = get_parenthesis_sub_array(array, i + 1, ('(', ')'))
-                    len_power_expression = len(power_expression)
+                    power_expression,len_power_expression, index = brackets_algorithm(array, i + 1)
 
                     if 'x' not in power_expression:
                         power_expression = organize_calcul_list(power_expression)
@@ -225,12 +228,12 @@ def organize_power(array, new_array):
                                                                len_power_expression + 1)
                 else:
                     # handle the case where the thing raised to the power is an expression
-                    expression_raised_to_power = get_parenthesis_sub_array(array, i - 1, ('(', ')'), reverse=True)
+                    expression_raised_to_power, length, index = reverse_brackets_algorithm(array, i - 1)
                     if 'x' not in expression_raised_to_power:
                         expression_raised_to_power = organize_calcul_list(expression_raised_to_power)
 
-                    power_expression, index = get_parenthesis_sub_array(array, i + 1, ('(', ')'))
-                    ln_power_expression = len(power_expression)
+                    power_expression, ln_power_expression, index = brackets_algorithm(array, i + 1)
+
                     if 'x' not in power_expression:
                         power_expression = organize_calcul_list(power_expression)
 
@@ -248,7 +251,7 @@ def organize_power(array, new_array):
             else:
                 if array[i] == '(':
                     # we first must get the closing bracket position, and check if after it there is a ^ or not
-                    closing_bracket_index = get_parenthesis_sub_array(array, i, ('(', ')'))[1]
+                    closing_bracket_index = brackets_algorithm(array, i)[2]
                     if check_element_after_condition(array, closing_bracket_index):
                         new_array += [array[i]]
                         array[i] = None
@@ -268,47 +271,35 @@ def organize_power(array, new_array):
     return new_array
 
 
-"""array5 = ['[', '(', '5', '+', '2', ')', '*', '3', '-', 'exp', '(', '{', '2', '-', '9', '}', '*', '4', '+', '5', '*',
-          '8', ')',
-          ']', '/', '[', '(', '8', '-', '4', ')', '*', '3', '-', 'ln', '(', '2', ')',
-          ']']
+def organize_numbers(array, new_array, recursive=False):
+    # if two numbers are not separated by anything, then they form the same number
+    if recursive:  # if the function call is recursive, we don't need to run this function
+        return array
+    index_counter = -1
+    skip_next = 0
+    numbers = range(10)
+    numbers2 = [str(n) for n in numbers]
+    for element in array:
+        index_counter += 1
+        if skip_next > 0:
+            skip_next -= 1
+            continue
 
-expression = ['[', '(', 'x', '+', '2x', ')', '*', 'x', '-', '8', '*', '4', '+', 'x', '*', 'ln', '(', '2', ')', ']', '/',
-              '[', '(', '4', '+', 'exp', '(', '10', ')', ')', '*', 'x', '-', 'ln', '(', 'x'
-              , ']']
-expression2 = ['[', '(', '7', '-', '2', ')', '*', '(', '3', '+', '4', ')', '-', 'exp', '(', '2', ')', '+', 'ln', '(',
-               '5', ')', ']', '/', '[', 'sqrt', '(', '16', ')', '+', '2', '*', '(', '6', '-', '3', ')', ']']
-expression3 = ['[', 'sin', '(', '30', ')', '+', 'ln', '(', '100', ')', ']', '/'
-    , '[', 'sqrt', '(', '25', ')', '-', 'cos', '(', '45', ')', ']']
+        if element in numbers or element in numbers2:  # if the element is a number, we loop while the next element is a number, and we gather all the numbers in the variable number
+            number = str(element)
+            j = index_counter
+            try:
+                while array[j + 1] in numbers or array[j + 1] in numbers2:
+                    number += str(array[j + 1])
+                    j += 1
+            except IndexError:
+                pass
+            new_array += [int(float(number))]
+            skip_next += len(number) - 1
+        else:
+            new_array += [element]
 
-expression4 = ['(', '3', '*', 'x', ')', '+', '(','8', '+', 'x', ')','*','x', '+', '9', '*', 'x', '-', '(', 'sqrt', '(', '9', ')', '*', '2', ')']
-expression5 = ['[', '(', '3', '+', '2', ')', '*', '(', '3', '-', '1', ')', ']', '/', '[', '(', '4', '+', '1', ')', ']']
-expression6 = ['[', '(', '6', '+', '2', ')', '*', '(', '9', '-', '3', ')', '+', '4', ']',
-               '/', '[', '(', '5', '+', '1', ')', '*', '(', '3', '-', '2', ')', ']']
+    if new_array[0] == '+':
+        new_array = new_array[1:]
 
-rational_function = ['[', '2', '*', 'x', '+', '1', ']', '/', '[', 'x', '-', '3', ']']
-
-
-To represent the expression (5 - 1) ^ (3 + 2) as a Python list, you can use the following structure:
-
-python
-Copy code
-]
-
-print(organize_calcul_list(expression, variable=True))
-"""
-
-expression = [
-    '(',
-    5,
-    '-',
-    1,
-    ')',
-    '^',
-    '(',
-    3,
-    '+',
-    2,
-    ')'
-]
-# print(organize_calcul_list(expression, variable=True))
+    return new_array

@@ -136,4 +136,44 @@ def check_element_after_condition(array, last_index):
     except IndexError:
         return True
 
-# get_divisor([[[['6', '+', '2'], '/', ['9', '-', '3']], '+', '4'], '/', [['5', '+', '1'], '*', ['3', '-', '2']]])
+
+def brackets_algorithm(array, index_counter, to_calculate=False,
+                       variable=False):  # the third argument will say if we have to calculate what it inside the brackets or not
+    from math_calcul2.organizing_function import organize_calcul_list
+    j = 0
+    index_counter2 = index_counter
+    for next_element in array[index_counter + 1:]:
+        index_counter2 += 1
+        if next_element == '(':
+            j += 1
+        elif next_element == ')':
+            j -= 1
+            if j < 0:
+                sub_array = array[index_counter + 1:index_counter2]
+                ln_sub_array = len(sub_array)
+
+                sub_array = organize_calcul_list(sub_array, variable=variable,
+                                                 to_calculate=to_calculate,
+                                                 recursive=True)  # organize the expression inside the brackets
+                return sub_array, ln_sub_array, index_counter2
+
+
+def reverse_brackets_algorithm(array, index_counter, to_calculate=False, variable=False):
+    from math_calcul2.organizing_function import organize_calcul_list
+    j = 0
+    index = index_counter
+    while j >= 0:
+        index -= 1
+        if array[index] == ')':
+            j += 1
+        elif array[index] == '(':
+            j -= 1
+
+    sub_array = array[index + 1:index_counter]
+    ln_sub_array = len(sub_array)
+
+    sub_array = organize_calcul_list(sub_array, variable=variable,
+                                                 to_calculate=to_calculate,
+                                                 recursive=True)  # organize the expression inside the brackets
+    return sub_array, ln_sub_array, index
+

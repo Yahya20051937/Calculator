@@ -4,6 +4,8 @@ from math_calcul2.helping_function import has_common_items, get_sub_array2, chec
     process_list
 from math_calcul2.distributing_function import is_calculable, is_calculable2
 
+
+
 funcs = ['ln', 'exp', 'cos', 'sin', 'tan', 'sqrt']
 signs = ('+', '-')
 signs2 = ('*', '/')
@@ -67,11 +69,15 @@ def handle_array(array, index_counter_0, big_array, variable=False):
 @is_calculable
 def calculate_normal_sub_array(sub_array):  # this function expects a pattern like this e.g., number, operator, number)
     from math_calcul2.helping_function2 import move_first_two_to_end
+    from math_calcul2.helping_function import has_common_items
     index_counter = -1
     result = 0
     skip_next = 0
-    if len(sub_array) == 1:
-        return float(sub_array[0])
+    try:
+        if len(sub_array) == 1:
+            return float(sub_array[0])
+    except TypeError:
+        return sub_array
 
     if sub_array[0] == '-':
         sub_array = move_first_two_to_end(sub_array)
@@ -97,6 +103,9 @@ def calculate_normal_sub_array(sub_array):  # this function expects a pattern li
             result = make_calculation(False, sub_array, index_counter, result,
                                       first_calculation)  # false refers to the minus sign
             skip_next += 1
+
+    if result == 0 and not has_common_items(sub_array, ('+', '-')):                  # if the calculation has not been made.
+        return calculate2(sub_array)
 
     return result
 
@@ -144,12 +153,14 @@ def make_calculation(sign, sub_array, index_counter, result, first_calculation):
 
 
 def calculate_func_sub_array(sub_array, variable=False):
-    from math_calcul2.organizing_function import organize_signs_, organize_parenthesis
-    from math_calcul2.helping_function2 import check_conditions
-    inside_function = get_parenthesis_sub_array(sub_array, 1, ('(', ')'))[0]
-    inside_function = organize_parenthesis(inside_function, [], ('{', '}'))
-    inside_function = organize_signs_(inside_function, [])
-    inside_function = calculate1(inside_function)
+    from math_calcul2.organizing_function import organize_calcul_list
+    from math_calcul2.helping_function2 import check_conditions, brackets_algorithm
+
+    inside_function, index, ln_inside_func = brackets_algorithm(sub_array, 1, to_calculate=True)  # the index of the opening bracket is one here
+    # inside_function = organize_parenthesis(inside_function, [], ('{', '}'))
+    # inside_function = organize_signs_(inside_function, [])
+    # inside_function = calculate1(inside_function)
+    # inside_function = organize_calcul_list(inside_function, math_func_bra=('{', '}'))
     if check_conditions(inside_function):
         inside_function = float(inside_function)
         if sub_array[0] in funcs[2:4]:
@@ -198,6 +209,9 @@ def calculate_normal_sub_array2(sub_array):  # this function expects a pattern l
             result = make_calculation2(False, sub_array, index_counter, result,
                                        first_calculation)  # false refers to the division sign
             skip_next += 1
+
+    if result == 0 and not has_common_items(sub_array, ('*', '/')):
+        return calculate1(sub_array)
 
     return result
 

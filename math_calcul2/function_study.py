@@ -7,6 +7,7 @@ from functions.my_functions import set_function
 class Function:
     def __init__(self, expression):
         self.expression = organize_calcul_list(expression, variable=True)
+        print(self.expression)
 
     @property
     def get_df(self):

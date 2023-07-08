@@ -1,6 +1,6 @@
 from gui.gui2 import display_async, display
+from gui.gui1 import calculator_main, ROOT
 from math_calcul.math1 import calcul_async, calcul
-
 
 
 def get_func(root, label):
@@ -16,3 +16,7 @@ def get_func2(root, label):
 
     return func
 
+
+if __name__ == '__main__':
+    calculator_main()
+    ROOT.mainloop()

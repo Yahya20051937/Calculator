@@ -3,6 +3,7 @@ from math_calcul.math_functions import sort_calcul_list, sub_calcul2, get_indexe
 from functions.my_functions import replace_sequence_in_array, divider_into_multiplier, gather_elements
 from math_calcul.equations import solve_degree_two_equations
 from math_calcul2.organizing_function import organize_calcul_list
+from Errors.handling_functions import brackets_handling_algorithm as bracket_algorithm
 
 
 class Test(TestCase):
@@ -166,3 +167,35 @@ class Test(TestCase):
         result = organize_calcul_list(expression)
         self.assertAlmostEqual(result, expected_result)
 
+    def test_brackets_algorithm(self):
+        # Test case 1: Properly balanced brackets
+        expression1 = "2 * (3 + 4) - {5 / [6 - 2]}"
+        array1 = [t for t in expression1 if t != ' ']
+        self.assertTrue(brackets_algorithm(array1))
+
+        # Test case 2: Empty input
+        expression2 = ""
+        array2 = [t for t in expression2 if t != ' ']
+        self.assertTrue(brackets_algorithm(array2))
+
+        # Test case 3: Mismatched brackets
+        expression3 = "(2 * (3 + 4) - {5 / [6 - 2)}"
+        array3 = [t for t in expression3 if t != ' ']
+        self.assertFalse(brackets_algorithm(array3))
+
+        # Test case 4: Nested brackets
+        expression4 = "2 * ((3 + 4) - {5 / [6 - 2]})"
+        array4 = [t for t in expression4 if t != ' ']
+        self.assertTrue(brackets_algorithm(array4))
+
+        # Test case 5: Unbalanced brackets
+        expression5 = "2 * (3 + 4) - {5 / [6 - 2}"
+        array5 = [t for t in expression5 if t != ' ']
+        self.assertFalse(brackets_algorithm(array5))
+
+        def test_expression(self):
+            expression = ['sqrt', '(', '16', ')', '+', 'cos', '(', '3.14', '/', '4', ')', '-', 'exp', '(', 'ln', '(',
+                          '2', ')', ')']
+            result = organize_calcul_list(expression)
+            expected = 2.4591677385908666
+            self.assertAlmostEqual(result, expected)

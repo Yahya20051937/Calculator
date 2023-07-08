@@ -110,4 +110,25 @@ def handle_item(item):
         return item
 
 
-# get_parenthesis_sub_array(['3', '+', '(', '8', '+', '2', ')'], index=6, para_type=('(', ')'), reverse=True)
+def handle_minus(array):
+    if array[0] == '-' and len(array) == 2:  # if the last has only one number transform it to a product
+        array = [-1, '*', array[1]]
+        return array
+    else:
+        j = 0
+        while array[0] == '-' and j < len(
+                array):  # otherwise, loop over the array and move the sign and the number to the end of the list
+            j += 1
+            array.append(array[0])
+            array.append(array[1])
+
+            array = array[2:]
+        if array[
+            0] == '-':  # if the while loop is over and the first item is still a minus sign, it means that we reached the end of the list in the loop
+            product = [-1, '*', array[1]]  # we transform the first number to a product
+            array = array[2:]
+            array = product + array
+        elif array[0] == '*' or array[0] == '/':
+            array = [1] + array
+
+    return array

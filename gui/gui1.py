@@ -25,12 +25,12 @@ def calculator_main():
     calculator_frame1 = tk.Frame(calculator_main_frame)
 
     sub_frame1 = tk.Frame(calculator_frame1)
-    closing_brackets = tk.Button(sub_frame1, text=']', command=lambda x=']': func.send(x))
+    closing_brackets = tk.Button(sub_frame1, text=']', command=lambda x='}': func.send(x))
     a_power_b = tk.Button(sub_frame1, text='^', command=lambda x='^': func.send(x))
     ln = tk.Button(sub_frame1, text='ln', command=lambda x='ln': func.send(x))
 
     sub_frame2 = tk.Frame(calculator_frame1)
-    open_brackets = tk.Button(sub_frame2, text='[', command=lambda x='[': func.send(x))
+    open_brackets = tk.Button(sub_frame2, text='[', command=lambda x='{': func.send(x))
     exp = tk.Button(sub_frame2, text='exp', command=lambda x='exp': func.send(x))
     pi = tk.Button(sub_frame2, text='π')
 
@@ -106,7 +106,7 @@ def calculator_main():
 
 
 def func_widget():
-    from math_calcul.function_study import f
+    from math_calcul2.function_study import Function
     main_frame = tk.Frame(ROOT)
 
     y = tk.StringVar()
@@ -116,7 +116,7 @@ def func_widget():
     frame1 = tk.Frame(main_frame)
     label = tk.Label(frame1, text='f(x) = ')
     entry = tk.Entry(frame1, textvariable=y)
-    button = tk.Button(frame1, text='▶️', command=lambda x=y: f(x.get()))
+    button = tk.Button(frame1, text='▶️', command=lambda: Function([element for element in y.get() if element != ' ']))
 
     frame2 = tk.Frame(main_frame)
     label2 = tk.Label(frame2)
@@ -133,6 +133,4 @@ def func_widget():
     label2.pack(side='top', fill='both', expand=True)
 
 
-if __name__ == '__main__':
-    calculator_main()
-    ROOT.mainloop()
+

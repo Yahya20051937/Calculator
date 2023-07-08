@@ -89,12 +89,15 @@ class UnknownNumber:
 
 def is_calculable(func):
     from math_calcul2.helping_function import has_sublists
+    from math_calcul2.calculating_function import calculate1
+
 
     def check(array):
         if not has_sublists(array) and (len(array) == 1 or len(array) >= 3):
             return func(array)
         else:
-            return array
+            if has_sublists(array):
+                return func(calculate1(array))
 
     return check
 
@@ -109,47 +112,6 @@ def is_calculable2(func):
             return array
 
     return check
-
-
-"""def distribute(big_array):
-    from math_calcul2.helping_function import has_sublists
-    from math_calcul2.calculating_function import calculate_normal_sub_array, calculate2, calculate_normal_sub_array2, \
-        has_common_items, funcs, calculate_func_sub_array
-
-    if has_sublists(big_array):
-        index_counter = -1
-        for array in big_array:
-            index_counter += 1
-            if array.__class__ == list:
-                if has_sublists(array):
-                    index_counter1 = -1
-                    for sub_array in array:
-                        index_counter1 += 1
-                        if not has_sublists(sub_array):
-
-                            if sub_array.__class__ == list:
-                                if not has_common_items(sub_array, funcs):
-                                    array[index_counter1] = calculate_normal_sub_array(
-                                        sub_array)
-                                else:
-                                    array[index_counter1] = calculate_func_sub_array(
-                                        sub_array)  # the same logic used in the calculating program except that here if the array has a variable in it , then it will not be calculated ,this step is then only for simplifying the expression before actually distributing it
-
-                        else:
-                            index_counter2 = -1
-                            for sub_sub_array in sub_array:
-                                index_counter2 += 1
-                                if sub_sub_array.__class__ == list:
-                                    if not has_common_items(sub_sub_array, funcs):
-                                        sub_array[index_counter2] = calculate_normal_sub_array(
-                                            sub_sub_array)
-                                    else:
-                                        sub_array[index_counter2] = calculate_func_sub_array(
-                                         sub_sub_array)
-                        array[index_counter1] = calculate_normal_sub_array(sub_array)
-
-    big_array = calculate2(big_array, variable=True)
-    return redistribute(big_array)"""
 
 
 def redistribute(big_array):
